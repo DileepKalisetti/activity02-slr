@@ -223,6 +223,8 @@ To begin, we will create a `{parsnip}` specification for a linear model.
 -   In the code chunk below titled `parsnip-spec`, replace "verbatim" with "r" just before the code chunk title.
 
 ```{r parsnip-spec}
+library(broom)
+library(parsnip)
 lm_spec <- linear_reg() %>%
   set_mode("regression") %>%
   set_engine("lm")
@@ -298,6 +300,7 @@ Using the `diamonds` example provided to you in the Day 2 `README`, do the follo
 -   Using your initial split R object, assign the two splits into a training R object and a testing R object.
 
 ```{r train-test}
+library(rsample)
 # set seed before random split
 set.seed(1)
 # put 80% of the data into the training set
@@ -387,7 +390,7 @@ Answer the following question:
 
 -   In the code chunk below titled `residual-histogram`, replace "verbatim" with "r" just before the code chunk title.
 
-```{r fitted-residual}
+```{r fitted-residualhist}
 ggplot(data = train_aug, aes(x = .resid)) +
   geom_histogram(binwidth = 0.25) +
   xlab("Residuals")
