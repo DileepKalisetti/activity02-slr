@@ -51,11 +51,14 @@ I have downloaded this file and it is available to you in your Day 1 directory (
 
 In the R code chunk below titled `load-data`, you will type the code that reads in the above linked CSV file by doing the following:
 
--   In this directory (`activity02-slr/day01-fitting`), you have a file named `hfi.csv`.
--   Using `readr::read_csv` (`{readr}` is part of `{tidyverse}`), read this file into your R session.
--   Assign this data set into a data frame named `hfi` (short for "Human Freedom Index").
+- In this directory (`activity02-slr/day01-fitting`), you have a file named `hfi.csv`.
+- Using `readr::read_csv` (`{readr}` is part of `{tidyverse}`), read this file into your R session.
+- Assign this data set into a data frame named `hfi` (short for "Human Freedom Index").
 
 ```{r load-data}
+library(readr)
+hfi <- read_csv("/home/kalisetd/STA631/activity02-slr/day01-fitting/hfi.csv")
+head(hfi)
 
 ```
 
@@ -69,6 +72,23 @@ The dataset spans a lot of years. We are only interested in data from year 2016.
 -   Assigns the result to a data frame named `hfi_2016`.
 
 ```{r hfi-2016}
+library(dplyr)
+
+#Below is the code for the dimensions of the dataset
+dim(hfi)
+
+#Example of top 6 rows of the dataset
+head(hfi)
+
+#Filter the data `hfi` data frame for year 2016, and Assigns the result to a data frame named `hfi_2016`.
+
+hfi_2016 <- hfi %>%
+  filter(year==2016)
+
+dim(hfi_2016)
+
+head(hfi_2016)
+
 
 ```
 
@@ -82,16 +102,44 @@ For this activity we want to explore the relationship between the personal freed
 
 Answer the following questions (use your markdown skills) and complete the following tasks.
 
+```{r}
+summary(hfi_2016$pf_score)
+summary(hfi_2016$pf_expression_control)
+```
+
+
 2.  What type of plot would you use to display the distribution of the personal freedom scores, `pf_score`? Would this be the same type of plot to display the distribution of the political pressures and controls on media content index, `pf_expression_control`?
 
 -   In the R code chunk below titled `univariable-plots`, type the R code that displays this plot for `pf_score`.
 -   In the R code chunk below titled `univariable-plots`, type the R code that displays this plot for `pf_expression_control`.
 
 ```{r distribution-plots}
+library(ggplot2)
+
+# Histogram for pf_score
+ggplot(hfi_2016, aes(x = pf_score)) +
+  geom_histogram(binwidth = 1, fill = "orange", color = "black") +
+  theme_minimal() +
+  labs(title = "Distribution of Personal Freedom Score in 2016", x = "Personal Freedom Score", y = "Count")
+
+# Histogram for pf_expression_control
+ggplot(hfi_2016, aes(x = pf_expression_control)) +
+  geom_histogram(binwidth = 1, fill = "green", color = "black") +
+  theme_minimal() +
+  labs(title = "Distribution of Political Pressures and Controls on Media Content Index in 2016", x = "Political Pressures and Controls on Media Content Index", y = "Count")
 
 ```
 
 4.  Comment on each of these two distributions. Be sure to describe their centers, spread, shape, and any potential outliers.
+
+**Dileep Kalisetti** : 
+
+**`pf_score`**
+The distribution of personal freedom scores (pf_score) shows that the median score is 6.932 and the mean is 6.985, indicating that most countries have relatively high personal freedom scores. The scores range from a minimum of 2.167 to a maximum of 9.399, with an interquartile range (IQR) from 6.025 to 8.142, suggesting moderate variability. The histogram for pf_score is likely to exhibit a slightly right-skewed distribution, given the higher mean compared to the median. Potential outliers are present on the lower end of the scale, representing countries with significantly lower personal freedom scores.
+
+**`pf_expression_control`**
+For the political pressures and controls on media content index (pf_expression_control), the median value is 5.000 and the mean is 4.985, indicating that the central tendency is around the midpoint of the scale. The scores range from a minimum of 0.250 to a maximum of 9.250, with an IQR from 3.312 to 6.750, reflecting a broad spread of political pressures and controls on media content across different countries. The histogram for pf_expression_control is expected to be fairly symmetric due to the similar mean and median, though there might be slight skewness and potential outliers at both ends of the distribution. These outliers represent countries with exceptionally low or high political pressures and controls on media content.
+
 
 5.  What type of plot would you use to display the relationship between the personal freedom score, `pf_score`, and the political pressures and controls on media content index,`pf_expression_control`?
 
@@ -99,9 +147,25 @@ Answer the following questions (use your markdown skills) and complete the follo
 
 ```{r relationship-plot}
 
+# Scatter plot
+
+# Scatter plot of pf_expression_control vs. pf_score
+ggplot(hfi_2016, aes(x = pf_expression_control, y = pf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "red") +
+  theme_minimal() +
+  labs(title = "Relationship between Personal Freedom Score and Political Pressures and Controls on Media Content Index in 2016",
+       x = "Political Pressures and Controls on Media Content Index",
+       y = "Personal Freedom Score")
+
+
 ```
 
 4.  Does the relationship look linear? If you knew a country's `pf_expression_control`, or its score out of 10, with 0 being the most, of political pressures and controls on media content, would you be comfortable using a linear model to predict the personal freedom score?
+
+**Dileep Kalisetti** : The scatter plot with pf_expression_control on the x-axis and pf_score on the y-axis, along with a fitted linear regression line, suggests that the relationship between the two variables is linear. The data points appear to be closely clustered around the regression line, indicating a linear pattern.
+
+**Dileep Kalisetti** :Given the strong positive linear relationship indicated by the correlation coefficient of 0.8450646 between pf_expression_control and pf_score, it is reasonable to use a linear model to predict a country's personal freedom score based on its political pressures and controls on media content index. 
 
 #### Challenge
 
@@ -110,8 +174,45 @@ For each plot and using your `{dplyr}` skills, obtain the appropriate numerical 
 What numerical summary would you use to describe the relationship between two numerical variables? (hint: explore the `cor` function from Base R)
 
 ```{r challenge}
+# Summary statistics for pf_score
+pf_score_summary <- hfi_2016 %>%
+  summarize(
+    Min = min(pf_score, na.rm = TRUE),
+    Q1 = quantile(pf_score, 0.25, na.rm = TRUE),
+    Median = median(pf_score, na.rm = TRUE),
+    Mean = mean(pf_score, na.rm = TRUE),
+    Q3 = quantile(pf_score, 0.75, na.rm = TRUE),
+    Max = max(pf_score, na.rm = TRUE),
+    SD = sd(pf_score, na.rm = TRUE)
+  )
+
+# Summary statistics for pf_expression_control
+pf_expression_control_summary <- hfi_2016 %>%
+  summarize(
+    Min = min(pf_expression_control, na.rm = TRUE),
+    Q1 = quantile(pf_expression_control, 0.25, na.rm = TRUE),
+    Median = median(pf_expression_control, na.rm = TRUE),
+    Mean = mean(pf_expression_control, na.rm = TRUE),
+    Q3 = quantile(pf_expression_control, 0.75, na.rm = TRUE),
+    Max = max(pf_expression_control, na.rm = TRUE),
+    SD = sd(pf_expression_control, na.rm = TRUE)
+  )
+
+# Calculate the correlation coefficient
+correlation <- cor(hfi_2016$pf_expression_control, hfi_2016$pf_score, use = "complete.obs")
+
+# Display the summary statistics and correlation coefficient
+list(
+  pf_score_summary = pf_score_summary,
+  pf_expression_control_summary = pf_expression_control_summary,
+  correlation = correlation
+)
+
+
 
 ```
+
+**Dileep Kalisetti** : The correlation coefficient between pf_expression_control and pf_score is 0.8450646. This is a high positive value, indicating a strong positive linear relationship between the two variables. This means that as the political pressures and controls on media content index increases, the personal freedom score tends to increase as well.
 
 ### 3. Fit a simple linear regression model
 
@@ -121,7 +222,7 @@ To begin, we will create a `{parsnip}` specification for a linear model.
 
 -   In the code chunk below titled `parsnip-spec`, replace "verbatim" with "r" just before the code chunk title.
 
-```{verbatim parsnip-spec}
+```{r parsnip-spec}
 lm_spec <- linear_reg() %>%
   set_mode("regression") %>%
   set_engine("lm")
@@ -137,7 +238,7 @@ Using this specification, we can now fit our model: $\texttt{pf\\_score} = \beta
 
 -   In the code chunk below titled `fit-lm`, replace "verbatim" with "r" just before the code chunk title.
 
-```{verbatim fit-lm}
+```{r fit-lm}
 slr_mod <- lm_spec %>% 
   fit(pf_score ~ pf_expression_control, data = hfi_2016)
 
@@ -148,7 +249,7 @@ The above code fits our SLR model, then provides a `tidy` parameter estimates ta
 
 5.  Using the `tidy` output, update the below formula with the estimated parameters. That is, replace "intercept" and "slope" with the appropriate values
 
-$\widehat{\texttt{pf\\_score}} = intercept + slope \times \texttt{pf\\_expression\\_control}$
+$\widehat{\texttt{pf\\_score}} = 4.2838153 + 0.5418452 \times \texttt{pf\\_expression\\_control}$
 
 6.  Interpret each of the estimated parameters from (5) in the context of this research question. That is, what do these values represent?
 
@@ -160,6 +261,9 @@ Hopefully, you were able to interpret the SLR model parameter estimates (i.e., t
 
 > For every 1 unit increase in `pf_expression_control` (political pressure on media content index), we expect a country's mean personal freedom score to increase 0.542 units.
 
+**Dileep Kalisetti** :The intercept tells us that countries with the highest level of political pressure on media content (i.e., pf_expression_control = 0) have an expected personal freedom score of 4.28.
+The slope indicates that as political pressure and control on media content increase by one unit, the personal freedom score is expected to increase by 0.542 units. This suggests a positive relationship between media freedom and overall personal freedom.
+
 ### 4. Assessing
 
 #### 4.A: Assess with your Day 1 model
@@ -168,7 +272,7 @@ To assess our model fit, we can use $R^2$ (the coefficient of determination), th
 
 -   In the code chunk below titled `glance-lm`, replace "verbatim" with "r" just before the code chunk title.
 
-```{verbatim glance-mod}
+```{r glance-mod}
 glance(slr_mod)
 ```
 
@@ -176,7 +280,11 @@ After doing this and running the code, answer the following questions:
 
 7.  What is the value of $R^2$ for this model?
 
+**Dileep Kalisetti** : 0.7141342	
+
 8.  What does this value mean in the context of this model? Think about what would a "good" value of $R^2$ would be? Can/should this value be "perfect"?
+
+**Dileep Kalisetti** :The $R^2$ value of 0.7141342 means that approximately 71.41% of the variability in the personal freedom scores (pf_score) can be explained by the political pressures and controls on media content index (pf_expression_control). This suggests a strong relationship between the predictor and the outcome variable.
 
 #### 4.B: Assess with test/train
 
@@ -189,13 +297,26 @@ Using the `diamonds` example provided to you in the Day 2 `README`, do the follo
 -   Create an initial 80-20 split of the `hfi_2016` dataset
 -   Using your initial split R object, assign the two splits into a training R object and a testing R object.
 
+```{r train-test}
+# set seed before random split
+set.seed(1)
+# put 80% of the data into the training set
+hfi_2016_split <- initial_split(hfi_2016, prop = 0.80)
+
+# assign the two splits to data frames - with descriptive names
+hfi_2016_train <- training(hfi_2016_split)
+hfi_2016_test <- testing(hfi_2016_split)
+
+```
+
+
 Now, you will use your training dataset to fit a SLR model.
 
 -   In the code chunk below titled `train-fit-lm`, replace "verbatim" with "r" just before the code chunk title and update the data set to your training R object you just created.
 
-```{verbatim train-fit-lm}
+```{r train-fit-lm}
 slr_train <- lm_spec %>% 
-  fit(pf_score ~ pf_expression_control, data = hfi_2016)
+  fit(pf_score ~ pf_expression_control, data = hfi_2016_train)
 
 tidy(slr_train)
 ```
@@ -204,16 +325,20 @@ Notice that you can reuse the `lm_spec` specification because we are still doing
 
 9.  Using the `tidy` output, update the below formula with the estimated parameters. That is, replace "intercept" and "slope" with the appropriate values
 
-$\widehat{\texttt{pf\\_score}} = intercept + slope \times \texttt{pf\\_expression\\_control}$
+$\widehat{\texttt{pf\\_score}} = 4.1748130 + 0.5679447 \times \texttt{pf\\_expression\\_control}$
 
 10. Interpret each of the estimated parameters from (10) in the context of this research question. That is, what do these values represent?
+
+**Dileep Kalisetti** :Intercept Interpretation: The intercept value of 4.1748130 is significant as it provides an estimated personal freedom score for countries with the highest level of political pressure on media content. It sets the baseline for understanding how much freedom a country might have under extreme media control.
+
+**Dileep Kalisetti** : Slope Interpretation: The slope value of 0.5679447 illustrates the expected increase in personal freedom score with each unit decrease in media control. This shows that reducing political pressure on media content is associated with an increase in personal freedom, highlighting the impact of media freedom on overall personal liberty.
 
 Now we will assess using the testing data set.
 
 -   In the code chunk below titled `train-fit-lm`, replace "verbatim" with "r" just before the code chunk title and update `data_test` to whatever R object you assigned your testing data to above.
 
-```{verbatim glance-test}
-test_aug <- augment(slr_train, new_data = data_test)
+```{r glance-test}
+test_aug <- augment(slr_train, new_data = hfi_2016_test )
 test_aug
 ```
 
@@ -235,8 +360,8 @@ In order to do these checks we need access to the fitted (predicted) values and 
 
 -   In the code chunk below titled `augment`, replace "verbatim" with "r" just before the code chunk title and update `data_train` to whatever R object you assigned your training data to above.
 
-```{verbatim augment}
-train_aug <- augment(slr_train, new_data = data_train)
+```{r augment}
+train_aug <- augment(slr_train, new_data = hfi_2016_train)
 train_aug
 ```
 
@@ -244,7 +369,7 @@ train_aug
 
 -   In the code chunk below titled `fitted-residual`, replace "verbatim" with "r" just before the code chunk title.
 
-```{verbatim fitted-residual}
+```{r fitted-residual}
 ggplot(data = train_aug, aes(x = .pred, y = .resid)) +
   geom_point() +
   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
@@ -262,7 +387,7 @@ Answer the following question:
 
 -   In the code chunk below titled `residual-histogram`, replace "verbatim" with "r" just before the code chunk title.
 
-```{verbatim fitted-residual}
+```{r fitted-residual}
 ggplot(data = train_aug, aes(x = .resid)) +
   geom_histogram(binwidth = 0.25) +
   xlab("Residuals")
@@ -272,11 +397,13 @@ Answer the following question:
 
 12. Based on the histogram, does the nearly normal residuals condition appear to be violated? Why or why not?
 
-**Constant variability**:
+**Constant variability**: Yes, the nearly normal residuals condition appears to be violated based on the histogram. The histogram shows that the residuals are not symmetrical, which is a characteristic of a normal distribution. The residuals are skewed to the right, meaning there are more residuals on the positive side than on the negative side. This suggests that the errors in the model are not normally distributed.
 
 13. Based on the residuals vs. fitted plot, does the constant variability condition appear to be violated? Why or why not?
 
-## Attribution
+## Attribution: Based on the residuals vs fitted plot, the constant variability condition does not appear to be violated.
+
+In a residuals vs fitted plot, constant variability is met if the vertical spread of the residuals remains constant across the horizontal range of the fitted values. In this plot, the residuals are scattered randomly around the horizontal axis, with no discernible pattern. This suggests that the variance of the errors is consistent regardless of the fitted value.
 
 This document is based on labs from [OpenIntro](https://www.openintro.org/).
 
